@@ -1,0 +1,61 @@
+waves:
+  wave1:
+    ZOMBIE: 5
+    SPIDER: 2
+  wave2:
+    SKELETON: 5
+    ZOMBIE: 3
+  wave3:
+    STRAY: 4
+    Husk: 2
+    cave_spider: 2
+  wave4:
+    WITCH: 2
+    zombie: 4
+  wave5:
+    Phantom: 5
+    skeleton: 2
+  wave6:
+    PIglin: 3
+    zombie_villager: 3
+    spider: 2
+    cave_spider: 2
+  wave7:
+    vindicator: 3
+    skeleton: 4
+    witch: 2
+  wave8:
+    ravager: 1
+    Hoglin: 3
+    Piglin: 4
+  wave9:
+    Blaze: 3
+    Wither_Skeleton: 3
+    WiTch: 1
+  wave10:
+    endermite: 3
+    Stray: 2
+    SilverFisH: 6
+  wave11:
+    piglin_brute: 2
+    ravager: 2
+    phantom: 6
+    Skeleton: 2
+  wave12:
+    Breeze: 4
+    Witch: 2
+    cave_spider: 2
+    HuSk: 2
+  wave13:
+    piglin_brute: 2
+    VinDiCaTor: 2
+    trader_llama: 1
+    Silverfish: 7
+    BlaZe: 2
+  wave14:
+    Ravager: 3
+    Bogged: 4
+    silverFiSH: 2
+    Skeleton: 3
+  wave15:
+    WARdEN: 1

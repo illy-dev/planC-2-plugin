@@ -1,0 +1,11 @@
+name: planCEvent
+version: '1.0-SNAPSHOT'
+main: de.illy.planCEvent.PlanCEvent
+api-version: '1.21'
+
+
+commands:
+  event:
+    description: event mechanic
+  dungeon:
+    description: start a dungeon
