@@ -69,6 +69,12 @@ public class TowerOfDungeonEvent {
         return true;
     }
 
+    private Location getWaveLocationForPlayer(Player p, int waveIndex) {
+        int playerIndex = new ArrayList<>(PlayerManager.getPlayers()).indexOf(p);
+        int yOffset = baseY + (18 * waveIndex);
+        return new Location(p.getWorld(), 616 + (18 * playerIndex), yOffset, 1559.5);
+    }
+
 
     public void startEvent(World eventWorld) {
         currentWave = 0;
@@ -133,13 +139,11 @@ public class TowerOfDungeonEvent {
 
     public void spawnLootBox(Player p) {
         initChestLoot();
-
         UUID uuid = p.getUniqueId();
         int waveIndex = playerWaveCounter.getOrDefault(uuid, 0);
 
-        int playerIndex = new ArrayList<>(PlayerManager.getPlayers()).indexOf(p);
-        int yOffset = baseY + (18 * (waveIndex-1));
-        Location chestLoc = new Location(p.getWorld(), 616 + (18 * playerIndex), (yOffset-3), 1561);
+        Location baseLoc = getWaveLocationForPlayer(p, waveIndex-1);
+        Location chestLoc = baseLoc.clone().add(0, -1, 1.5);
         chestLoc.getBlock().setType(Material.CHEST);
 
         Block chestBlock = chestLoc.getBlock();
@@ -182,9 +186,7 @@ public class TowerOfDungeonEvent {
             return;
         }
 
-        int playerIndex = new ArrayList<>(PlayerManager.getPlayers()).indexOf(p);
-        int yOffset = baseY + (18 * waveIndex);
-        Location newLoc = new Location(p.getWorld(), 616 + (18 * playerIndex), yOffset, 1559.5);
+        Location newLoc = getWaveLocationForPlayer(p, waveIndex);
 
         p.teleport(newLoc);
         if (waveIndex != 0 ) {

@@ -9,3 +9,5 @@ commands:
     description: event mechanic
   dungeon:
     description: start a dungeon
+  hub:
+    description: teleport to the hub

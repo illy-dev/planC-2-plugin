@@ -3,6 +3,7 @@ package de.illy.planCEvent;
 import de.illy.planCEvent.commands.Dungeon;
 import de.illy.planCEvent.commands.Event;
 import de.illy.planCEvent.commands.GiveItems;
+import de.illy.planCEvent.commands.Hub;
 import de.illy.planCEvent.dungeons.generator.DungeonGenerator;
 import de.illy.planCEvent.events.HideAndSeekEvent;
 import de.illy.planCEvent.events.TowerOfDungeonEvent;
@@ -44,6 +45,7 @@ public final class PlanCEvent extends JavaPlugin {
         getCommand("event").setTabCompleter(new de.illy.planCEvent.tabcompleter.Event());
 
         getCommand("dungeon").setExecutor(new Dungeon(waveManager, dungeonGenerator));
+        getCommand("hub").setExecutor(new Hub());
 
         // listeners
         getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);

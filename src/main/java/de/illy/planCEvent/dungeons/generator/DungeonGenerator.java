@@ -77,7 +77,7 @@ public class DungeonGenerator {
 
     public void generateDungeon(boolean isLowerFloor) {
         int attempts = 0;
-        final int MAX_ATTEMPTS = 20; // Increased from 10
+        final int MAX_ATTEMPTS = 20;
 
         do {
             resetGrids();
@@ -88,274 +88,80 @@ public class DungeonGenerator {
             generateMazeStructure();
             attempts++;
 
-            // Early exit if we have a valid dungeon
-            if (validateDungeonAccessibility()) {
+            if (validateDungeonLayout()) {
                 placeDungeonInWorld();
                 return;
-            }
-
-            // After 10 attempts, try more aggressive fixes
-            if (attempts >= 10) {
-                fixIsolatedRooms();
             }
 
         } while (attempts < MAX_ATTEMPTS);
 
         // Final attempt with forced connectivity
-        if (attempts >= MAX_ATTEMPTS) {
-            forceFullConnectivity();
-            if (validateDungeonAccessibility()) {
-                placeDungeonInWorld();
-            } else {
-                Bukkit.getLogger().warning("Critical failure: Could not generate valid dungeon");
-                // Fallback - generate simple valid layout
-                generateFallbackLayout();
-                placeDungeonInWorld();
-            }
+        generateGuaranteedValidLayout(isLowerFloor);
+        placeDungeonInWorld();
+    }
+
+    private boolean validateDungeonLayout() {
+        // Check all special rooms have exactly one connection
+        if (connectionCount[entranceRoom[0]][entranceRoom[1]] != 1 ||
+                connectionCount[bloodRoom[0]][bloodRoom[1]] != 1) {
+            return false;
         }
-    }
 
-    private void fixIsolatedRooms() {
-        // Identify all isolated rooms
-        boolean[][] visited = new boolean[GRID_WIDTH][GRID_HEIGHT];
-        floodFill(entranceRoom, visited);
-
-        // Connect each isolated room to nearest connected normal room
-        for (int x = 0; x < GRID_WIDTH; x++) {
-            for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (dungeonGrid[x][z] && !visited[x][z] && isNormalRoom(x, z)) {
-                    connectToNearestNormalRoom(new int[]{x, z}, visited);
-                }
-            }
-        }
-    }
-
-    private boolean isNormalRoom(int x, int z) {
-        return roomTypes[x][z] == RoomType.NORMAL ||
-                roomTypes[x][z] == RoomType.SHAPED_NORMAL;
-    }
-
-    private void connectToNearestNormalRoom(int[] room, boolean[][] visited) {
-        boolean[][] checked = new boolean[GRID_WIDTH][GRID_HEIGHT];
-        Queue<int[]> queue = new LinkedList<>();
-        queue.add(room);
-        checked[room[0]][room[1]] = true;
-
-        while (!queue.isEmpty()) {
-            int[] current = queue.poll();
-
-            for (int dir = 0; dir < 4; dir++) {
-                int[] neighbor = getNeighbor(current, dir);
-                if (!isValidRoom(neighbor[0], neighbor[1]) || checked[neighbor[0]][neighbor[1]]) {
-                    continue;
-                }
-
-                // Only connect to normal rooms that are already connected
-                if (isNormalRoom(neighbor[0], neighbor[1]) && visited[neighbor[0]][neighbor[1]]) {
-                    connectRooms(current, neighbor, dir);
-                    return;
-                }
-
-                // Continue searching
-                checked[neighbor[0]][neighbor[1]] = true;
-                queue.add(neighbor);
-            }
-        }
-    }
-
-    private void forceFullConnectivity() {
-        // Modified spanning tree approach that only connects normal rooms
-        boolean[][] connected = new boolean[GRID_WIDTH][GRID_HEIGHT];
-        List<int[]> connectedRooms = new ArrayList<>();
-
-        // Start with all special rooms and their immediate normal neighbors
-        for (int x = 0; x < GRID_WIDTH; x++) {
-            for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (dungeonGrid[x][z] && !isNormalRoom(x, z)) {
-                    connected[x][z] = true;
-                    connectedRooms.add(new int[]{x, z});
-
-                    // Mark directly connected normal rooms as connected
-                    for (int dir = 0; dir < 4; dir++) {
-                        int[] neighbor = getNeighbor(new int[]{x, z}, dir);
-                        if (isValidRoom(neighbor[0], neighbor[1]) && isNormalRoom(neighbor[0], neighbor[1])) {
-                            connected[neighbor[0]][neighbor[1]] = true;
-                            connectedRooms.add(neighbor);
-                        }
-                    }
-                }
+        for (int[] puzzleRoom : puzzleRooms) {
+            if (connectionCount[puzzleRoom[0]][puzzleRoom[1]] != 1) {
+                return false;
             }
         }
 
-        // Now connect remaining normal rooms
-        while (connectedRooms.size() < countPlacedRooms()) {
-            // Find closest unconnected normal room to any connected normal room
-            int[] closestPair = findClosestNormalRoomPair(connected);
-            if (closestPair != null) {
-                int[] room1 = new int[]{closestPair[0], closestPair[1]};
-                int[] room2 = new int[]{closestPair[2], closestPair[3]};
-                int dir = getDirection(room1, room2);
-                connectRooms(room1, room2, dir);
-                connected[room2[0]][room2[1]] = true;
-                connectedRooms.add(room2);
-            } else {
-                break;
-            }
-        }
+        // Verify all rooms are accessible from entrance
+        return validateDungeonAccessibility();
     }
 
-    private int[] findClosestNormalRoomPair(boolean[][] connected) {
-        int minDistance = Integer.MAX_VALUE;
-        int[] result = null;
-
-        for (int x1 = 0; x1 < GRID_WIDTH; x1++) {
-            for (int z1 = 0; z1 < GRID_HEIGHT; z1++) {
-                if (dungeonGrid[x1][z1] && connected[x1][z1] && isNormalRoom(x1, z1)) {
-                    for (int x2 = 0; x2 < GRID_WIDTH; x2++) {
-                        for (int z2 = 0; z2 < GRID_HEIGHT; z2++) {
-                            if (dungeonGrid[x2][z2] && !connected[x2][z2] && isNormalRoom(x2, z2)) {
-                                int dist = Math.abs(x1-x2) + Math.abs(z1-z2);
-                                if (dist < minDistance) {
-                                    minDistance = dist;
-                                    result = new int[]{x1, z1, x2, z2};
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private void generateFallbackLayout() {
+    private void generateGuaranteedValidLayout(boolean isLowerFloor) {
         resetGrids();
-        // Simple straight path from entrance to blood room using only normal rooms
         placeSpecialRooms();
-
-        // Connect via normal rooms only
-        int[] current = entranceRoom.clone();
-        while (!Arrays.equals(current, bloodRoom)) {
-            int[] next = new int[]{current[0], current[1]};
-            if (current[0] < bloodRoom[0]) next[0]++;
-            else if (current[0] > bloodRoom[0]) next[0]--;
-            else if (current[1] < bloodRoom[1]) next[1]++;
-            else if (current[1] > bloodRoom[1]) next[1]--;
-
-            // Only place normal rooms in between
-            if (!Arrays.equals(next, bloodRoom)) {
-                dungeonGrid[next[0]][next[1]] = true;
-                roomTypes[next[0]][next[1]] = RoomType.NORMAL;
-                connectRooms(current, next, getDirection(current, next));
-            }
-            current = next;
-        }
-
-        // Place fairy room adjacent to blood room
         placeFairyRoom();
+        placePuzzleRooms(isLowerFloor);
+        fillNormalRooms(isLowerFloor);
 
-        // Fill remaining with normal rooms
+        // Create guaranteed path from entrance to blood room
+        createGuaranteedPath(entranceRoom, bloodRoom);
+
+        // Connect all other rooms to this path
         for (int x = 0; x < GRID_WIDTH; x++) {
             for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (!dungeonGrid[x][z]) {
-                    dungeonGrid[x][z] = true;
-                    roomTypes[x][z] = RoomType.NORMAL;
+                if (dungeonGrid[x][z] && !isConnected(new int[]{x, z})) {
+                    connectToNearestConnectedRoom(new int[]{x, z});
                 }
             }
         }
 
-        // Ensure all normal rooms are connected without modifying special rooms' connections
-        forceFullConnectivity();
-    }
-
-    private void floodFill(int[] start, boolean[][] visited) {
-        Queue<int[]> queue = new LinkedList<>();
-        queue.add(start);
-        visited[start[0]][start[1]] = true;
-
-        while (!queue.isEmpty()) {
-            int[] current = queue.poll();
-
-            for (int dir = 0; dir < 4; dir++) {
-                int[] neighbor = getNeighbor(current, dir);
-                if (isValidRoom(neighbor[0], neighbor[1]) &&
-                        hasConnection(current, neighbor) &&
-                        !visited[neighbor[0]][neighbor[1]]) {
-                    visited[neighbor[0]][neighbor[1]] = true;
-                    queue.add(neighbor);
-                }
-            }
+        // Ensure special rooms have exactly one connection
+        ensureSingleConnection(entranceRoom);
+        ensureSingleConnection(bloodRoom);
+        for (int[] puzzleRoom : puzzleRooms) {
+            ensureSingleConnection(puzzleRoom);
         }
     }
 
-    /**
-     * Validates that all rooms are accessible from the entrance
-     * @return true if all rooms are accessible, false otherwise
-     */
-    private boolean validateDungeonAccessibility() {
-        // Track visited rooms
-        boolean[][] visited = new boolean[GRID_WIDTH][GRID_HEIGHT];
+    private void createGuaranteedPath(int[] start, int[] end) {
+        int[] current = start.clone();
 
-        // Queue for BFS
-        Queue<int[]> queue = new LinkedList<>();
-        queue.add(entranceRoom);
-        visited[entranceRoom[0]][entranceRoom[1]] = true;
+        while (!Arrays.equals(current, end)) {
+            int[] next = new int[]{current[0], current[1]};
 
-        int accessibleRooms = 1; // Count the entrance room
+            // Move toward target with some randomness
+            if (current[0] != end[0] && (current[1] == end[1] || rand.nextBoolean())) {
+                next[0] += (current[0] < end[0]) ? 1 : -1;
+            } else {
+                next[1] += (current[1] < end[1]) ? 1 : -1;
+            }
 
-        while (!queue.isEmpty()) {
-            int[] current = queue.poll();
-
-            // Check all four possible directions
-            for (int dir = 0; dir < 4; dir++) {
-                int[] neighbor = getNeighbor(current, dir);
-
-                // Skip if out of bounds or not a room
-                if (!isValidRoom(neighbor[0], neighbor[1])) {
-                    continue;
-                }
-
-                // Check if there's a connection between current and neighbor
-                if (hasConnection(current, neighbor) && !visited[neighbor[0]][neighbor[1]]) {
-                    visited[neighbor[0]][neighbor[1]] = true;
-                    queue.add(neighbor);
-                    accessibleRooms++;
-                }
+            if (isValidRoom(next[0], next[1])) {
+                connectRooms(current, next, getDirection(current, next));
+                current = next;
             }
         }
-
-        // Check if all rooms were visited
-        int totalRooms = countPlacedRooms();
-        return accessibleRooms == totalRooms;
-    }
-
-    /**
-     * Counts how many rooms have been placed in the dungeon
-     */
-    private int countPlacedRooms() {
-        int count = 0;
-        for (int x = 0; x < GRID_WIDTH; x++) {
-            for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (dungeonGrid[x][z]) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Checks if two adjacent rooms have a connection between them
-     */
-    private boolean hasConnection(int[] room1, int[] room2) {
-        for (Connection conn : connections) {
-            if ((Arrays.equals(conn.room1, room1) && Arrays.equals(conn.room2, room2)) ||
-                    (Arrays.equals(conn.room1, room2) && Arrays.equals(conn.room2, room1))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void resetGrids() {
@@ -421,11 +227,11 @@ public class DungeonGenerator {
     }
 
     private void placeFairyRoom() {
-        // Get all adjacent and diagonal positions to blood room
+        // Get all adjacent positions to blood room
         List<int[]> possibleFairyPositions = new ArrayList<>();
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dy == 0) continue; // Skip blood room itself
+                if (dx == 0 && dy == 0) continue;
 
                 int nx = bloodRoom[0] + dx;
                 int ny = bloodRoom[1] + dy;
@@ -437,7 +243,6 @@ public class DungeonGenerator {
             }
         }
 
-        // Place exactly 1 fairy room
         if (!possibleFairyPositions.isEmpty()) {
             int[] pos = possibleFairyPositions.get(rand.nextInt(possibleFairyPositions.size()));
             dungeonGrid[pos[0]][pos[1]] = true;
@@ -464,7 +269,6 @@ public class DungeonGenerator {
         int maxPuzzle = isLowerFloor ? 2 : 5;
         int numPuzzle = Math.min(validPositions.size(), rand.nextInt(maxPuzzle) + 1);
 
-        // Place puzzle rooms
         for (int i = 0; i < numPuzzle && !validPositions.isEmpty(); i++) {
             int[] pos = validPositions.remove(0);
             dungeonGrid[pos[0]][pos[1]] = true;
@@ -474,16 +278,12 @@ public class DungeonGenerator {
     }
 
     private boolean isValidForPuzzleRoom(int x, int z) {
-        // Check distance from entrance and blood room
         int entranceDist = Math.abs(x - entranceRoom[0]) + Math.abs(z - entranceRoom[1]);
         int bloodDist = Math.abs(x - bloodRoom[0]) + Math.abs(z - bloodRoom[1]);
-
-        // Must be at least 2 rooms away
         return entranceDist >= 2 && bloodDist >= 2;
     }
 
     private void fillNormalRooms(boolean isLowerFloor) {
-        // First fill all remaining empty rooms with normal rooms
         for (int x = 0; x < GRID_WIDTH; x++) {
             for (int z = 0; z < GRID_HEIGHT; z++) {
                 if (!dungeonGrid[x][z]) {
@@ -493,21 +293,16 @@ public class DungeonGenerator {
             }
         }
 
-        // Place shaped rooms
         int targetShaped = isLowerFloor ? 2 : rand.nextInt(4) + 2;
         placeShapedRooms(targetShaped);
     }
 
     private void placeShapedRooms(int targetShaped) {
         List<int[][]> shapes = new ArrayList<>();
-        // L-shape
-        shapes.add(new int[][]{{0,0}, {1,0}, {0,1}});
-        // 2x2 square
-        shapes.add(new int[][]{{0,0}, {1,0}, {0,1}, {1,1}});
-        // Line (horizontal)
-        shapes.add(new int[][]{{0,0}, {1,0}});
-        // Line (vertical)
-        shapes.add(new int[][]{{0,0}, {0,1}});
+        shapes.add(new int[][]{{0,0}, {1,0}, {0,1}}); // L-shape
+        shapes.add(new int[][]{{0,0}, {1,0}, {0,1}, {1,1}}); // 2x2 square
+        shapes.add(new int[][]{{0,0}, {1,0}}); // Horizontal line
+        shapes.add(new int[][]{{0,0}, {0,1}}); // Vertical line
 
         int shapedCount = 0;
         int attempts = 0;
@@ -516,7 +311,6 @@ public class DungeonGenerator {
         while (shapedCount < targetShaped && attempts < maxAttempts) {
             attempts++;
 
-            // Find all normal rooms that could be anchor points
             List<int[]> normalAnchors = new ArrayList<>();
             for (int x = 0; x < GRID_WIDTH; x++) {
                 for (int z = 0; z < GRID_HEIGHT; z++) {
@@ -528,11 +322,9 @@ public class DungeonGenerator {
 
             if (normalAnchors.isEmpty()) break;
 
-            // Pick a random anchor and shape
             int[] anchor = normalAnchors.get(rand.nextInt(normalAnchors.size()));
             int[][] shape = shapes.get(rand.nextInt(shapes.size()));
 
-            // Check if shape fits
             boolean fits = true;
             List<int[]> shapePositions = new ArrayList<>();
             shapePositions.add(anchor);
@@ -550,7 +342,6 @@ public class DungeonGenerator {
             }
 
             if (fits) {
-                // Mark all positions as part of shaped room
                 for (int[] pos : shapePositions) {
                     shapedRooms[pos[0]][pos[1]] = true;
                 }
@@ -561,63 +352,16 @@ public class DungeonGenerator {
     }
 
     private void generateMazeStructure() {
-        createGuaranteedPath();
+        createGuaranteedPath(entranceRoom, bloodRoom);
         addRandomConnections();
         ensureConnectivity();
-
-        // Force puzzle rooms to have only one connection
-        for (int[] puzzlePos : puzzleRooms) {
-            ensureSingleConnection(puzzlePos);
-        }
-    }
-
-    private void createGuaranteedPath() {
-        connectRoomsWithPath(entranceRoom, bloodRoom);
-
-        // Connect any isolated rooms
-        for (int x = 0; x < GRID_WIDTH; x++) {
-            for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (!isConnected(new int[]{x, z})) {
-                    connectToNearestConnectedRoom(new int[]{x, z});
-                }
-            }
-        }
-    }
-
-    private void connectRoomsWithPath(int[] start, int[] end) {
-        int[] current = start.clone();
-
-        while (!Arrays.equals(current, end)) {
-            int[] next = new int[]{current[0], current[1]};
-
-            // Move toward target
-            if (current[0] < end[0]) next[0]++;
-            else if (current[0] > end[0]) next[0]--;
-            else if (current[1] < end[1]) next[1]++;
-            else if (current[1] > end[1]) next[1]--;
-
-            // Random variation
-            if (rand.nextInt(100) < 30) {
-                if (rand.nextBoolean() && current[0] != end[0]) {
-                    next[0] += (current[0] < end[0]) ? 1 : -1;
-                } else if (current[1] != end[1]) {
-                    next[1] += (current[1] < end[1]) ? 1 : -1;
-                }
-            }
-
-            if (isValidRoom(next[0], next[1])) {
-                connectRooms(current, next, getDirection(current, next));
-                current = next;
-            }
-        }
     }
 
     private void addRandomConnections() {
-        // Add extra connections to small rooms
+        // Add extra connections to normal rooms
         for (int x = 0; x < GRID_WIDTH; x++) {
             for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (!isSpecialRoom(x, z)) {
-                    // Ensure 1-2 connections
+                if (isNormalRoom(x, z)) {
                     while (connectionCount[x][z] < 1 ||
                             (connectionCount[x][z] < 2 && rand.nextBoolean())) {
                         addRandomConnection(x, z);
@@ -626,28 +370,44 @@ public class DungeonGenerator {
             }
         }
 
-        // Add dead ends
+        // Add some dead ends
         for (int x = 0; x < GRID_WIDTH; x++) {
             for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (!isSpecialRoom(x, z) && connectionCount[x][z] > 1) {
-                    if (rand.nextInt(100) < DEAD_END_CHANCE) {
-                        List<Connection> conns = getConnectionsForRoom(x, z);
-                        if (!conns.isEmpty()) {
-                            Connection toRemove = conns.get(rand.nextInt(conns.size()));
-                            disconnectRooms(toRemove.room1, toRemove.room2);
-                        }
+                if (isNormalRoom(x, z) && connectionCount[x][z] > 1 &&
+                        rand.nextInt(100) < DEAD_END_CHANCE) {
+                    List<Connection> conns = getConnectionsForRoom(x, z);
+                    if (!conns.isEmpty()) {
+                        Connection toRemove = conns.get(rand.nextInt(conns.size()));
+                        disconnectRooms(toRemove.room1, toRemove.room2);
                     }
                 }
             }
         }
     }
 
+    private boolean isNormalRoom(int x, int z) {
+        return roomTypes[x][z] == RoomType.NORMAL ||
+                roomTypes[x][z] == RoomType.SHAPED_NORMAL;
+    }
+
     private void ensureConnectivity() {
-        // Flood fill check
         boolean[][] visited = new boolean[GRID_WIDTH][GRID_HEIGHT];
+        floodFill(entranceRoom, visited);
+
+        // Connect any unvisited rooms
+        for (int x = 0; x < GRID_WIDTH; x++) {
+            for (int z = 0; z < GRID_HEIGHT; z++) {
+                if (dungeonGrid[x][z] && !visited[x][z]) {
+                    connectToNearestConnectedRoom(new int[]{x, z});
+                }
+            }
+        }
+    }
+
+    private void floodFill(int[] start, boolean[][] visited) {
         Queue<int[]> queue = new LinkedList<>();
-        queue.add(entranceRoom);
-        visited[entranceRoom[0]][entranceRoom[1]] = true;
+        queue.add(start);
+        visited[start[0]][start[1]] = true;
 
         while (!queue.isEmpty()) {
             int[] current = queue.poll();
@@ -659,19 +419,6 @@ public class DungeonGenerator {
                 }
             }
         }
-
-        // Fix any unreachable rooms
-        for (int x = 0; x < GRID_WIDTH; x++) {
-            for (int z = 0; z < GRID_HEIGHT; z++) {
-                if (!visited[x][z]) {
-                    connectToNearestConnectedRoom(new int[]{x, z});
-                }
-            }
-        }
-
-        // Final validation
-        ensureSingleConnection(entranceRoom);
-        ensureSingleConnection(bloodRoom);
     }
 
     private void connectToNearestConnectedRoom(int[] room) {
@@ -750,6 +497,7 @@ public class DungeonGenerator {
             return false;
         }
 
+        // Check if connection already exists
         for (Connection conn : connections) {
             if ((conn.room1[0] == room1[0] && conn.room1[1] == room1[1] &&
                     conn.room2[0] == room2[0] && conn.room2[1] == room2[1]) ||
@@ -831,6 +579,41 @@ public class DungeonGenerator {
         return connectionCount[room[0]][room[1]] > 0;
     }
 
+    private boolean validateDungeonAccessibility() {
+        boolean[][] visited = new boolean[GRID_WIDTH][GRID_HEIGHT];
+        Queue<int[]> queue = new LinkedList<>();
+        queue.add(entranceRoom);
+        visited[entranceRoom[0]][entranceRoom[1]] = true;
+
+        int accessibleRooms = 1;
+
+        while (!queue.isEmpty()) {
+            int[] current = queue.poll();
+            for (Connection conn : getConnectionsForRoom(current[0], current[1])) {
+                int[] neighbor = (Arrays.equals(conn.room1, current)) ? conn.room2 : conn.room1;
+                if (!visited[neighbor[0]][neighbor[1]]) {
+                    visited[neighbor[0]][neighbor[1]] = true;
+                    queue.add(neighbor);
+                    accessibleRooms++;
+                }
+            }
+        }
+
+        return accessibleRooms == countPlacedRooms();
+    }
+
+    private int countPlacedRooms() {
+        int count = 0;
+        for (int x = 0; x < GRID_WIDTH; x++) {
+            for (int z = 0; z < GRID_HEIGHT; z++) {
+                if (dungeonGrid[x][z]) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     public void placeDungeonInWorld() {
         boolean largeRoom60x60Placed = false;
         boolean largeRoom60x30Placed = false;
@@ -859,15 +642,11 @@ public class DungeonGenerator {
                 int worldX = x * (ROOM_SIZE_SMALL + GAP);
                 int worldZ = z * (ROOM_SIZE_SMALL + GAP);
 
-                Material floorMaterial = getFloorMaterial(x, z);
+                Material floorMaterial = roomTypes[x][z].getFloorMaterial();
                 buildRoom(worldX, startY, worldZ, roomWidth, roomLength, floorMaterial);
                 buildConnections(worldX, worldZ, roomWidth, roomLength, x, z);
             }
         }
-    }
-
-    private Material getFloorMaterial(int x, int z) {
-        return roomTypes[x][z].getFloorMaterial();
     }
 
     private void markGridAsOccupied(int x, int z, int widthInCells, int lengthInCells) {
@@ -894,7 +673,6 @@ public class DungeonGenerator {
     }
 
     private void buildConnections(int worldX, int worldZ, int roomWidth, int roomLength, int gridX, int gridZ) {
-        // Don't build connections for large rooms
         if (roomWidth > ROOM_SIZE_SMALL || roomLength > ROOM_SIZE_SMALL) {
             return;
         }
@@ -903,17 +681,14 @@ public class DungeonGenerator {
             if ((conn.room1[0] == gridX && conn.room1[1] == gridZ) ||
                     (conn.room2[0] == gridX && conn.room2[1] == gridZ)) {
 
-                // Determine which room is the other one
                 int[] otherRoom = (conn.room1[0] == gridX && conn.room1[1] == gridZ) ?
                         conn.room2 : conn.room1;
                 int direction = (conn.room1[0] == gridX && conn.room1[1] == gridZ) ?
                         conn.direction : (conn.direction + 2) % 4;
 
-                // Get the neighboring room's size
                 int neighborWidth = ROOM_SIZE_SMALL;
                 int neighborLength = ROOM_SIZE_SMALL;
                 if (roomOccupied[otherRoom[0]][otherRoom[1]]) {
-                    // Find the actual size of the neighboring room
                     for (int dx = 0; dx < GRID_WIDTH; dx++) {
                         for (int dz = 0; dz < GRID_HEIGHT; dz++) {
                             if (roomOccupied[dx][dz] && dx >= otherRoom[0] && dz >= otherRoom[1]) {
@@ -925,7 +700,6 @@ public class DungeonGenerator {
                     }
                 }
 
-                // Calculate connection points based on room sizes
                 switch (direction) {
                     case 0: // North
                         buildNorthConnection(worldX, worldZ, roomWidth, neighborLength);
@@ -1009,7 +783,6 @@ public class DungeonGenerator {
     }
 
     private boolean isInWorldBounds(int x, int z) {
-        // Check if coordinates are within the world bounds
         return x >= 0 && z >= 0 &&
                 x < GRID_WIDTH * (ROOM_SIZE_SMALL + GAP) &&
                 z < GRID_HEIGHT * (ROOM_SIZE_SMALL + GAP);
