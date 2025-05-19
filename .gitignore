@@ -1,0 +1,4 @@
+testserver
+.idea
+target
+src/main/java/de/illy/planCEvent/util/DbManager.java
