@@ -26,23 +26,21 @@ public class RoomBuilder {
     }
 
     private static void buildTreasureRoom(World world, int x, int y, int z) {
-        // Add treasure (chests, loot, etc.) to the room
-        world.getBlockAt(x, y, z).setType(Material.CHEST);
-        // You can also spawn loot, etc.
+        // Add treasure (chests, loot) to the room
+        world.getBlockAt(x, y, z).setType(Material.CHEST);.
     }
 
     private static void buildMonsterRoom(World world, int x, int y, int z) {
-        // Add monsters to the room (e.g., Zombies)
+        // Add monsters to the room
         world.spawnEntity(new Location(world, x, y, z), EntityType.ZOMBIE);
     }
 
     private static void buildEmptyRoom(World world, int x, int y, int z) {
-        // Just fill with air or other default blocks
+        // fill with air
         world.getBlockAt(x, y, z).setType(Material.STONE);
     }
 
-    private static void buildBossRoom(World world, int x, int y, int z) {
-        // Special boss room (maybe larger, special blocks, etc.)
+    private static void buildBossRoom(World world, int x, int y, int z)
         world.getBlockAt(x, y, z).setType(Material.DIAMOND_BLOCK);
     }
 }
