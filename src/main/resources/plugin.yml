@@ -11,3 +11,11 @@ commands:
     description: start a dungeon
   hub:
     description: teleport to the hub
+  giveitems:
+    description: give items
+  toggledamage:
+    description: toggle damage calc
+  spawnmob:
+    description: spawn a custom mob
+  opencase:
+    description: open a case

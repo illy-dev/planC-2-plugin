@@ -1,5 +1,7 @@
 package de.illy.planCEvent.listeners;
 
+import de.illy.planCEvent.StatSystem.CustomHealthManager;
+import de.illy.planCEvent.commands.ToggleDamage;
 import de.illy.planCEvent.events.TowerOfDungeonEvent;
 import de.illy.planCEvent.util.PlayerManager;
 import org.bukkit.Bukkit;
@@ -43,6 +45,9 @@ public class PlayerEventListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
+        if (ToggleDamage.isEnabled()) {
+            CustomHealthManager.getMaxHealth(player);
+        }
 
         if (PlayerManager.isDisqualified(uuid)) {
             player.setGameMode(GameMode.SPECTATOR);

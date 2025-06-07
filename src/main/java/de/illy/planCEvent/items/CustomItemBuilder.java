@@ -1,19 +1,25 @@
 package de.illy.planCEvent.items;
 
+import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CustomItemBuilder {
 
-    private final ItemStack item;
-    private final ItemMeta meta;
+    private ItemStack item;
+    private ItemMeta meta;
+    @Setter
     private static JavaPlugin plugin;
 
     private final List<String> enchantmentLore = new ArrayList<>();
@@ -21,6 +27,7 @@ public class CustomItemBuilder {
     private final List<String> abilityDescription = new ArrayList<>();
     private String abilityUsage = null;
     private String rarity = null;
+    private final Map<String, Double> stats = new HashMap<>();
 
     private de.illy.planCEvent.items.AbilityTrigger trigger = null;
     private Class<? extends de.illy.planCEvent.items.ItemAbility> abilityClass = null;
@@ -30,8 +37,9 @@ public class CustomItemBuilder {
         this.meta = item.getItemMeta();
     }
 
-    public static void setPlugin(JavaPlugin pluginInstance) {
-        plugin = pluginInstance;
+    public CustomItemBuilder(ItemStack existingItem) {
+        this.item = existingItem.clone();
+        this.meta = this.item.getItemMeta();
     }
 
     public CustomItemBuilder setDisplayName(String name) {
@@ -64,6 +72,12 @@ public class CustomItemBuilder {
         return this;
     }
 
+    public CustomItemBuilder addCheckEnchantment() {
+        meta.addEnchant(Enchantment.AQUA_AFFINITY, 1, false);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        return this;
+    }
+
     public CustomItemBuilder setCustomModelData(int data) {
         meta.setCustomModelData(data);
         return this;
@@ -71,6 +85,7 @@ public class CustomItemBuilder {
 
     public CustomItemBuilder setUnbreakable(boolean unbreakable) {
         meta.setUnbreakable(unbreakable);
+        meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         return this;
     }
 
@@ -81,6 +96,19 @@ public class CustomItemBuilder {
 
     public CustomItemBuilder setAbilityClass(Class<? extends de.illy.planCEvent.items.ItemAbility> abilityClass) {
         this.abilityClass = abilityClass;
+        return this;
+    }
+
+    public CustomItemBuilder addStat(String statName, double value) {
+        stats.put(statName.toLowerCase(), value);
+        return this;
+    }
+
+    public CustomItemBuilder addTag(String key) {
+        if (plugin != null) {
+            NamespacedKey namespacedKey = new NamespacedKey(plugin, key);
+            meta.getPersistentDataContainer().set(namespacedKey, PersistentDataType.BYTE, (byte) 1);
+        }
         return this;
     }
 
@@ -108,6 +136,13 @@ public class CustomItemBuilder {
 
         meta.setLore(lore);
 
+        if (plugin != null) {
+            stats.forEach((key, value) -> {
+                NamespacedKey statKey = new NamespacedKey(plugin, "stat_" + key);
+                meta.getPersistentDataContainer().set(statKey, PersistentDataType.DOUBLE, value);
+            });
+        }
+
         if (plugin != null && abilityClass != null && trigger != null) {
             NamespacedKey key = new NamespacedKey(plugin, "item_ability_class");
             NamespacedKey triggerKey = new NamespacedKey(plugin, "item_ability_trigger");
@@ -116,6 +151,7 @@ public class CustomItemBuilder {
             meta.getPersistentDataContainer().set(triggerKey, PersistentDataType.STRING, trigger.name());
         }
 
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         item.setItemMeta(meta);
         return item;
     }

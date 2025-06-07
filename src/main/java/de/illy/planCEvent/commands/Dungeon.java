@@ -1,57 +1,36 @@
 package de.illy.planCEvent.commands;
 
 import de.illy.planCEvent.dungeons.generator.DungeonGenerator;
-import de.illy.planCEvent.util.Wave.WaveManager;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 public class Dungeon implements CommandExecutor {
-
-    private final WaveManager waveManager;
-    private final DungeonGenerator dungeonGenerator;
-
-    public Dungeon(WaveManager waveManager, DungeonGenerator dungeonGenerator) {
-        this.waveManager = waveManager;
-        this.dungeonGenerator = dungeonGenerator;
-    }
-
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("Only players can use this command.");
+            sender.sendMessage("§cOnly players can use this command!");
             return true;
         }
 
-        if (args.length == 0) {
-            player.sendMessage("Usage: /dungeon <normal|tower>");
-            return true;
+        World world = Bukkit.getWorld("dungeon");
+
+        try {
+            long seed = args.length > 0 ? Long.parseLong(args[0]) : System.currentTimeMillis();
+            DungeonGenerator generator = new DungeonGenerator(
+                    world, 64
+            );
+            generator.generate(seed);
+            player.sendMessage("§aDungeon generated successfully!");
+        } catch (NumberFormatException e) {
+            player.sendMessage("§cInvalid seed. Please use a number.");
+        } catch (Exception e) {
+            player.sendMessage("§cFailed to generate dungeon: " + e.getMessage());
         }
 
-        switch (args[0].toLowerCase()) {
-            case "normal" -> {
-                player.sendMessage("Generating dungeon...");
-                DungeonGenerator generator = new DungeonGenerator();
-                generator.generateDungeon(true);
-
-                return true;
-            }
-            case "clean" -> {
-                return true;
-            }
-
-            case "tower" -> {
-                // TODO: Implement tower generation
-                player.sendMessage("Tower dungeon coming soon.");
-                return true;
-            }
-
-            default -> {
-                player.sendMessage("Unknown dungeon type. Use: normal or tower.");
-                return true;
-            }
-        }
+        return true;
     }
 }

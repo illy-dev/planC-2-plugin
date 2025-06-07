@@ -81,5 +81,12 @@
       <artifactId>mysql-connector-java</artifactId>
       <version>8.0.33</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.mojang</groupId>
+      <artifactId>authlib</artifactId>
+      <version>1.5.25</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>

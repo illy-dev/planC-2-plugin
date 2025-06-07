@@ -1,5 +1,7 @@
 package de.illy.planCEvent.items.weapons.hyperion;
 
+import de.illy.planCEvent.StatSystem.AbilityDamageHelper;
+import de.illy.planCEvent.commands.ToggleDamage;
 import de.illy.planCEvent.items.ItemAbility;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -43,7 +45,9 @@ public class HyperionAbility implements ItemAbility {
         List<Entity> nearby = player.getNearbyEntities(radius, radius, radius);
         for (Entity entity : nearby) {
             if (entity instanceof LivingEntity && entity != player) {
-                ((LivingEntity) entity).damage(damage, player);
+                if (!ToggleDamage.isEnabled()) {((LivingEntity) entity).damage(damage, player);} else {
+                    AbilityDamageHelper.dealAbilityDamage(player, (LivingEntity) entity, 250, 1);
+                }
                 hitCount++;
             }
         }
@@ -54,8 +58,6 @@ public class HyperionAbility implements ItemAbility {
                 player.getLocation(),
                 10, 2, 2, 2, 0.1 // count, offsetX, offsetY, offsetZ, speed
         );
-
-        player.sendMessage("§7Your Implosion hit §c" + hitCount + " §7enemies for §c" + (int) damage + " §7damage!");
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
 }
