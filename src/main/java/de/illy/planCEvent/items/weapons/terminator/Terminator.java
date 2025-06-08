@@ -28,6 +28,7 @@ public class Terminator {
                 .setAbility(AbilityTrigger.LEFT_CLICK)
                 .setAbilityClass(TerminatorAbility.class)
                 .setUnbreakable(true)
+                .addCheckEnchantment()
                 .addTag("is_terminator")
                 .build();
     }

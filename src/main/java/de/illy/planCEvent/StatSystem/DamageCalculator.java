@@ -23,14 +23,6 @@ public class DamageCalculator {
             critChance /= 4.0;
         }
 
-        player.sendMessage("§l----------------- MOB DMG DEBUG -----------------");
-        player.sendMessage("PLAYER > §2" + player.getName());
-        player.sendMessage("TARGET > §4" + target.getName());
-        player.sendMessage("basedamage > " + weaponBaseDamage);
-        player.sendMessage("critchance > " + critChance);
-        player.sendMessage("critdamage > " + critDamage);
-        player.sendMessage("Strength > " + strength);
-
         double additive = StatAPI.getTotalStat(player, "stat_additive_damage_multiplier"); // ex: +0.2 for +20%
         double multiplicative = StatAPI.getTotalStat(player, "stat_multiplicative_damage_multiplier"); // ex: 1.5 for 1.5x
         double bonus = StatAPI.getTotalStat(player, "stat_bonus_damage");
@@ -41,12 +33,10 @@ public class DamageCalculator {
 
         // Base formula
         double rawDamage = ((5 + weaponBaseDamage) * (1 + strength / 100.0) * (1 + additive) * (multiplicative + 1) + bonus) * critMultiplier;
-        player.sendMessage("raw > " + String.valueOf(rawDamage));
         // Defense reduction
         double defense = getEntityDefense(target);
         double finalDamage = applyDefenseReduction(rawDamage, defense);
 
-        player.sendMessage("final >> " + String.valueOf(finalDamage));
         return new DamageResult(finalDamage, isCrit);
     }
 

@@ -70,6 +70,9 @@ public class TerminatorAbility implements ItemAbility {
         }
     }
 
+    @Override
+    public void remove(Player player) {}
+
     // 2D horizontal rotation
     private Vector rotateVector(Vector vector, double degrees) {
         double radians = Math.toRadians(degrees);

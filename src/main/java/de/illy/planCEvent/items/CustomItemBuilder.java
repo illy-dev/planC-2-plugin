@@ -1,5 +1,6 @@
 package de.illy.planCEvent.items;
 
+import de.illy.planCEvent.PlanCEvent;
 import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -31,6 +32,10 @@ public class CustomItemBuilder {
 
     private de.illy.planCEvent.items.AbilityTrigger trigger = null;
     private Class<? extends de.illy.planCEvent.items.ItemAbility> abilityClass = null;
+
+    private Class<? extends de.illy.planCEvent.items.ItemAbility> bonusClass = null;
+    private de.illy.planCEvent.items.AbilityTrigger bonusTrigger = null;
+
 
     public CustomItemBuilder(Material material) {
         this.item = new ItemStack(material);
@@ -78,6 +83,12 @@ public class CustomItemBuilder {
         return this;
     }
 
+    public CustomItemBuilder setRelicId(String relicId) {
+        NamespacedKey relicKey = new NamespacedKey(PlanCEvent.getInstance(), "relic_id");
+        meta.getPersistentDataContainer().set(relicKey, PersistentDataType.STRING, relicId);
+        return this;
+    }
+
     public CustomItemBuilder setCustomModelData(int data) {
         meta.setCustomModelData(data);
         return this;
@@ -98,6 +109,17 @@ public class CustomItemBuilder {
         this.abilityClass = abilityClass;
         return this;
     }
+
+    public CustomItemBuilder setBonusClass(Class<? extends de.illy.planCEvent.items.ItemAbility> setBonusClass) {
+        this.bonusClass = setBonusClass;
+        return this;
+    }
+
+    public CustomItemBuilder setBonusTrigger(de.illy.planCEvent.items.AbilityTrigger trigger) {
+        this.bonusTrigger = trigger;
+        return this;
+    }
+
 
     public CustomItemBuilder addStat(String statName, double value) {
         stats.put(statName.toLowerCase(), value);
@@ -150,6 +172,15 @@ public class CustomItemBuilder {
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, abilityClass.getName());
             meta.getPersistentDataContainer().set(triggerKey, PersistentDataType.STRING, trigger.name());
         }
+
+        if (plugin != null && bonusClass != null && bonusTrigger != null) {
+            NamespacedKey setBonusKey = new NamespacedKey(plugin, "item_bonus_ability_class");
+            NamespacedKey setBonusTriggerKey = new NamespacedKey(plugin, "item_bonus_ability_trigger");
+
+            meta.getPersistentDataContainer().set(setBonusKey, PersistentDataType.STRING, bonusClass.getName());
+            meta.getPersistentDataContainer().set(setBonusTriggerKey, PersistentDataType.STRING, bonusTrigger.name());
+        }
+
 
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         item.setItemMeta(meta);

@@ -67,7 +67,7 @@ public class CustomHealthManager {
         if (entity instanceof Player player) {
             return 1000 + StatAPI.getTotalStat(player, "stat_health");
         } else {
-            return entity.getAttribute(Attribute.MAX_HEALTH).getBaseValue() * 10;
+            return entity.getAttribute(Attribute.MAX_HEALTH).getBaseValue() * 2;
         }
     }
 

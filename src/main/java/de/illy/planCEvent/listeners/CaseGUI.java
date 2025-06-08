@@ -1,6 +1,8 @@
 package de.illy.planCEvent.listeners;
 
 import de.illy.planCEvent.PlanCEvent;
+import de.illy.planCEvent.items.Relics;
+import de.illy.planCEvent.util.RelicHelper;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,30 +23,17 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
-import static de.illy.planCEvent.util.GetHead.getCustomHead;
 
 public class CaseGUI implements Listener {
 
     private static final Map<ItemStack, Integer> WEIGHTED_LOOT = new LinkedHashMap<>();
 
-    private static final String[] RELIC_BASE64S = {
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzZiZjZhM2I2MGUyMDY0MDI1ZTJjNzNkZTJiNzUxOThiNjJkMzU4MmExMDZlZDgzOWI2MDcwNjA4ODY5NmYxNSJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzU5YTYxZTExM2NjYmVkYWVjNTdjYjk2ODY4MGNmYWNhMGQ5ODdmZjJkMDgzZjVhZWYwNTg2YTUwMzE2YjI4ZCJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGM4Y2NkNWY4NjNkODJiYjA5N2I5MjZiYzVmNGNjYTk3YjE5ZjQ2ZTExYjNhM2E1OWQwMDFhZGI4OTg4Njc3MyJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGY4MjRkMTYyMmQwMDQ1NzgxNmJhMDJjN2ZhNjYwMmQ3ZDZkMTFkZmEzYzk2ODRlMGQ5NDQxMmVkNTllODQyNCJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGQ2MjBlNGUzZDNhYmZlZDZhZDgxYTU4YTU2YmNkMDg1ZDllOWVmYzgwM2NhYmIyMWZhNmM5ZTM5NjllMmQyZSJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTUyZDYxMmViZTZjMzk5OTZiNWE5MDVhNzdmNzJkMjhmNmRlZjgxZmU4Yjk3NTU2ZTI2MmQyNzJmODdlOWJiMCJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzVmNDg2MWFhNWIyMmVlMjhhOTBlNzVkYWI0NWQyMjFlZmQxNGMwYjFlY2M4ZWU5OThmYjY3ZTQzYmI4ZjNkZSJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzIxMTRhODAzNTc0NjNmZTJmNTllMzk3YWFiOWZjNjZkNDgyYTY1ZDUyNGY4ODcwZDIxYzcyNGMxOGVjZjc1NyJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjI3Mzc0MGQ0NTRkZTk2MjQ4NDcxMmY5ODM1ZTM1MTE5YjM3YWI4NjdmYTY5ODJkNWNjMWYzMzNjMjMzNGU1OSJ9fX0=",
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjkzM2NjYWFlZWZhODNhNjFmNWYzZmM5NDMwYTcwOGQ1Nzc4OTA5NjA3MDljN2I5YzY2ZjIxNTBiZDUyMzU2MSJ9fX0="
-    };
-    private static final int[] RELIC_WEIGHTS = {15, 12, 10, 8, 5, 1, 7, 11, 7, 1};
 
     static {
-        for (int i = 0; i < RELIC_BASE64S.length; i++) {
-            WEIGHTED_LOOT.put(getCustomHead(RELIC_BASE64S[i], ChatColor.LIGHT_PURPLE + "Relic #" + (i + 1)), RELIC_WEIGHTS[i]);
-        }
+        WEIGHTED_LOOT.put(Relics.RELIC_MOON, 15);
+        WEIGHTED_LOOT.put(Relics.RELIC_FIRE, 12);
+        WEIGHTED_LOOT.put(Relics.RELIC_VOID, 10);
+        WEIGHTED_LOOT.put(Relics.RELIC_LIGHT, 8);
     }
 
     private static final int INVENTORY_SIZE = 9;
@@ -177,7 +166,7 @@ public class CaseGUI implements Listener {
             inventory.setItem(CENTER_SLOT, prize);
 
             player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_PLACE, 1f, 1f);
-            player.sendMessage( player.getPlayerListName() + "§e opened a Relic container and got §6" + getDisplayName(prize));
+            Bukkit.broadcastMessage(player.getPlayerListName() + "§e opened a Relic container and got §6" + getDisplayName(prize));
 
             player.getInventory().addItem(prize);
 

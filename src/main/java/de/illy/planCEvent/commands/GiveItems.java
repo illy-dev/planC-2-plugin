@@ -4,6 +4,10 @@ import de.illy.planCEvent.items.RelicContainer.RelicContainer;
 import de.illy.planCEvent.items.XpBottles.ColossalXpBottle;
 import de.illy.planCEvent.items.XpBottles.GrandXpBottle;
 import de.illy.planCEvent.items.XpBottles.TitanicXpBottle;
+import de.illy.planCEvent.items.armor.Slimeboots.Slimeboots;
+import de.illy.planCEvent.items.armor.Slimeboots.SlimebootsAbility;
+import de.illy.planCEvent.items.wands.enderwand.Enderwand;
+import de.illy.planCEvent.items.wands.shrinkdevice.Shrinkdevice;
 import de.illy.planCEvent.items.weapons.hyperion.Hyperion;
 import de.illy.planCEvent.items.weapons.terminator.Terminator;
 import org.bukkit.command.Command;
@@ -23,6 +27,9 @@ public class GiveItems implements CommandExecutor {
             player.getInventory().addItem(TitanicXpBottle.create());
             player.getInventory().addItem(ColossalXpBottle.create());
             player.getInventory().addItem(RelicContainer.create());
+            player.getInventory().addItem(Slimeboots.create());
+            player.getInventory().addItem(Enderwand.create());
+            player.getInventory().addItem(Shrinkdevice.create());
             return true;
         }
 

@@ -18,7 +18,7 @@ public class Hyperion {
                 .addCustomEnchantmentLore("§7Intelligence: §a350")
                 .setAbilityName("§6Ability: Wither Impact §e§lRIGHT CLICK")
                 .addAbilityDescriptionLine("§7Teleport §a10 blocks§7 ahead of you.")
-                .addAbilityDescriptionLine("§7hen implode dealing §c19,986.8§7 damage to nearby enemies.")
+                .addAbilityDescriptionLine("§7then implode dealing §cmassive§7 damage to nearby enemies.")
                 .addAbilityDescriptionLine("§7Also applied the wither shield scroll ability")
                 .addAbilityDescriptionLine("§7reducing damage taken and granting absorption shield")
                 .addAbilityDescriptionLine("§7for §e5 §7seconds.")
@@ -26,7 +26,6 @@ public class Hyperion {
                 .setRarity("§6§lLEGENDARY DUNGEON SWORD")
                 .setAbility(AbilityTrigger.RIGHT_CLICK)
                 .setAbilityClass(HyperionAbility.class)
-                .setCustomModelData(1)
                 .addCheckEnchantment()
                 .setUnbreakable(true)
                 .build();

@@ -1,6 +1,7 @@
 package de.illy.planCEvent;
 
 import com.sun.tools.javac.Main;
+import de.illy.planCEvent.StatSystem.ManaRegenTask;
 import de.illy.planCEvent.commands.*;
 import de.illy.planCEvent.dungeons.generator.DungeonGenerator;
 import de.illy.planCEvent.events.HideAndSeekEvent;
@@ -8,6 +9,7 @@ import de.illy.planCEvent.events.TowerOfDungeonEvent;
 import de.illy.planCEvent.items.CustomItemBuilder;
 import de.illy.planCEvent.listeners.*;
 import de.illy.planCEvent.util.Inventory.InventoryFileManager;
+import de.illy.planCEvent.util.RelicManager;
 import de.illy.planCEvent.util.Wave.WaveManager;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,6 +20,8 @@ public final class PlanCEvent extends JavaPlugin {
     public static FileConfiguration config;
     @Getter
     private static PlanCEvent instance;
+    @Getter
+    private RelicManager relicManager = new RelicManager(this);
 
     @Override
     public void onEnable() {
@@ -27,6 +31,7 @@ public final class PlanCEvent extends JavaPlugin {
         WaveManager waveManager = new WaveManager(this);
         TowerOfDungeonEvent todEvent = new TowerOfDungeonEvent(waveManager);
         HideAndSeekEvent hideAndSeekEvent = new HideAndSeekEvent();
+        MenuGUI menu = new MenuGUI();
 
         //saveResource("waves.yml", true); // true = force overwrite
 
@@ -47,7 +52,8 @@ public final class PlanCEvent extends JavaPlugin {
         getCommand("hub").setExecutor(new Hub());
         getCommand("giveitems").setExecutor(new GiveItems());
         getCommand("toggledamage").setExecutor(new ToggleDamage());
-        getCommand("opencase").setExecutor(new OpenCase());
+        getCommand("menu").setExecutor(new Menu(menu));
+        getCommand("spawnparticles").setExecutor(new spawnParticles(this));
 
         getCommand("spawnmob").setExecutor(new SpawnMob());
         getCommand("spawnmob").setTabCompleter(new de.illy.planCEvent.tabcompleter.SpawnMob());
@@ -60,6 +66,12 @@ public final class PlanCEvent extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ArrowHitListener(), this);
         getServer().getPluginManager().registerEvents(new XpBottleListener(), this);
         getServer().getPluginManager().registerEvents(new CaseGUI(), this);
+        getServer().getPluginManager().registerEvents(new ArmorAbilityListener(this), this);
+        getServer().getPluginManager().registerEvents(new FallDamageListener(), this);
+        getServer().getPluginManager().registerEvents(new MenuGUI(), this);
+        getServer().getPluginManager().registerEvents(new RelicPlaceListener(), this);
+
+        ManaRegenTask.startTask();
 
         getLogger().info("Plan C Event Plugin started");
     }

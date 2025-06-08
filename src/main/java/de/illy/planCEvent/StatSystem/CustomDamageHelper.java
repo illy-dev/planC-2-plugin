@@ -2,6 +2,8 @@ package de.illy.planCEvent.StatSystem;
 
 import de.illy.planCEvent.StatSystem.StatAPI;
 import de.illy.planCEvent.StatSystem.CustomHealthManager;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
@@ -9,6 +11,9 @@ import static de.illy.planCEvent.StatSystem.DamageDisplayUtil.showDamage;
 
 public class CustomDamageHelper {
     public static void dealDamage(Player caster, LivingEntity target, double weaponBaseDamage) {
+        if (target instanceof Player) return;
+        if (target instanceof ArmorStand) return;
+        if (target instanceof ItemFrame) return;
         DamageCalculator.DamageResult result = DamageCalculator.calculateWeaponDamage(caster, target, weaponBaseDamage);
 
         double currentHp = CustomHealthManager.getHealth(target);

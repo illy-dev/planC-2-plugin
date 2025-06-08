@@ -1,12 +1,14 @@
 package de.illy.planCEvent.StatSystem;
 
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 
 import static de.illy.planCEvent.StatSystem.DamageDisplayUtil.showDamage;
 
 public class AbilityDamageHelper {
     public static void dealAbilityDamage(Player caster, LivingEntity target, double baseAbilityDamage, double scaling) {
+        if (target instanceof Player) return;
+        if (target instanceof ArmorStand) return;
+        if (target instanceof ItemFrame) return;
         DamageCalculator.DamageResult result = DamageCalculator.calculateAbilityDamage(caster, target, baseAbilityDamage, scaling);
 
         double currentHp = CustomHealthManager.getHealth(target);

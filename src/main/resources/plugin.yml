@@ -17,5 +17,7 @@ commands:
     description: toggle damage calc
   spawnmob:
     description: spawn a custom mob
-  opencase:
-    description: open a case
+  menu:
+    description: open main menu
+  spawnparticles:
+    description: spawns

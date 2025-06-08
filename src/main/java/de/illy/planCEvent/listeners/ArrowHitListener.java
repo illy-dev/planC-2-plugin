@@ -20,8 +20,6 @@ public class ArrowHitListener implements Listener {
 
         if (arrow.hasMetadata("term_arrow")) {
             CustomDamageHelper.dealDamage(shooter.getPlayer(), target, 210);
-            shooter.sendMessage("mob hp >>> " +String.valueOf(target.getHealth()));
-            shooter.sendMessage("§l----------------- MOB DMG DEBUG -----------------");
         }
 
         // Cleanup arrow

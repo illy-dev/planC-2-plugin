@@ -16,10 +16,10 @@ public class StatAPI {
 
     private static final Map<String, Double> defaultStats = Map.of(
             "stat_strength", 0.0,
+            "stat_health", 100.0,
             "stat_crit_chance", 30.0,  // default 30%
             "stat_crit_damage", 50.0,  // default 50%
             "stat_magic_damage", 0.0,
-            "stat_max_mana", 100.0,
             "stat_defense", 0.0,
             "stat_additive_damage_multiplier", 0.0,
             "stat_multiplicative_damage_multiplier", 1.0,

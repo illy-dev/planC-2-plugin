@@ -15,8 +15,19 @@ public class RelicContainerAbility implements ItemAbility {
 
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         if (IsRelicContainer(itemInHand)) {
-            player.getInventory().setItemInMainHand(null);
+            int amount = itemInHand.getAmount();
+            if (amount == 1) {
+                player.getInventory().setItemInMainHand(null);
+            } else {
+                itemInHand.setAmount(amount - 1);
+            }
+
         }
+
+    }
+
+    @Override
+    public void remove(Player player) {
 
     }
 

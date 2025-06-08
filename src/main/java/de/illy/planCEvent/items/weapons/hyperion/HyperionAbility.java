@@ -1,10 +1,14 @@
 package de.illy.planCEvent.items.weapons.hyperion;
 
 import de.illy.planCEvent.StatSystem.AbilityDamageHelper;
+import de.illy.planCEvent.StatSystem.ManaManager;
 import de.illy.planCEvent.commands.ToggleDamage;
 import de.illy.planCEvent.items.ItemAbility;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -35,29 +39,36 @@ public class HyperionAbility implements ItemAbility {
                 break; // Stop at first obstruction
             }
         }
+        if (ManaManager.consumeMana(player, 250)) {
+            player.teleport(targetLocation);
 
-        player.teleport(targetLocation);
+            double radius = 5.0;
+            double damage = 30.0;
+            int hitCount = 0;
 
-        double radius = 5.0;
-        double damage = 30.0;
-        int hitCount = 0;
-
-        List<Entity> nearby = player.getNearbyEntities(radius, radius, radius);
-        for (Entity entity : nearby) {
-            if (entity instanceof LivingEntity && entity != player) {
-                if (!ToggleDamage.isEnabled()) {((LivingEntity) entity).damage(damage, player);} else {
-                    AbilityDamageHelper.dealAbilityDamage(player, (LivingEntity) entity, 250, 1);
+            List<Entity> nearby = player.getNearbyEntities(radius, radius, radius);
+            for (Entity entity : nearby) {
+                if (entity instanceof LivingEntity && entity != player && !(entity instanceof ArmorStand)) {
+                    if (!ToggleDamage.isEnabled()) {((LivingEntity) entity).damage(damage, player);} else {
+                        AbilityDamageHelper.dealAbilityDamage(player, (LivingEntity) entity, 250, 1);
+                    }
+                    hitCount++;
                 }
-                hitCount++;
             }
-        }
 
-        World world = player.getWorld();
-        player.getWorld().spawnParticle(
-                Particle.EXPLOSION,
-                player.getLocation(),
-                10, 2, 2, 2, 0.1 // count, offsetX, offsetY, offsetZ, speed
-        );
-        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
+            World world = player.getWorld();
+            player.getWorld().spawnParticle(
+                    Particle.EXPLOSION,
+                    player.getLocation(),
+                    10, 2, 2, 2, 0.1 // count, offsetX, offsetY, offsetZ, speed
+            );
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
+
+            String actionBarText = "§b-250 Mana (§6Wither Impact§b)";
+            player.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(actionBarText));
+        }
     }
+
+    @Override
+    public void remove(Player player) {}
 }
