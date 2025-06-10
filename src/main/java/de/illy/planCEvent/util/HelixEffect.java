@@ -17,7 +17,7 @@ public class HelixEffect {
     // Configurable parameters
     private final double radius = 1.0;
     private final double height = 2.0;
-    private final int durationTicks = 10 * 20; // 10 seconds
+    private final int durationTicks = 20 * 20; // 20 seconds
     private final int points = 50;
     private final double angleSpeed = Math.PI / 10;
     Particle.DustOptions goldDust = new Particle.DustOptions(Color.fromRGB(255, 215, 0), 0.4f);

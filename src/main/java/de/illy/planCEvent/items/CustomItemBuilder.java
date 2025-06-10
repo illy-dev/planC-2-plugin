@@ -83,6 +83,18 @@ public class CustomItemBuilder {
         return this;
     }
 
+    public CustomItemBuilder addCheckEnchantment2() {
+        meta.addEnchant(Enchantment.DENSITY, 1, false);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        return this;
+    }
+
+    public CustomItemBuilder addCheckEnchantment3() {
+        meta.addEnchant(Enchantment.BREACH, 1, false);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        return this;
+    }
+
     public CustomItemBuilder setRelicId(String relicId) {
         NamespacedKey relicKey = new NamespacedKey(PlanCEvent.getInstance(), "relic_id");
         meta.getPersistentDataContainer().set(relicKey, PersistentDataType.STRING, relicId);

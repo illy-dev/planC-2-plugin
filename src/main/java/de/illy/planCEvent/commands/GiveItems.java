@@ -1,9 +1,11 @@
 package de.illy.planCEvent.commands;
 
+import de.illy.planCEvent.items.CoinSystem.Coin;
 import de.illy.planCEvent.items.RelicContainer.RelicContainer;
 import de.illy.planCEvent.items.XpBottles.ColossalXpBottle;
 import de.illy.planCEvent.items.XpBottles.GrandXpBottle;
 import de.illy.planCEvent.items.XpBottles.TitanicXpBottle;
+import de.illy.planCEvent.items.armor.Druid.DruidArmor;
 import de.illy.planCEvent.items.armor.Slimeboots.Slimeboots;
 import de.illy.planCEvent.items.armor.Slimeboots.SlimebootsAbility;
 import de.illy.planCEvent.items.wands.enderwand.Enderwand;
@@ -30,6 +32,12 @@ public class GiveItems implements CommandExecutor {
             player.getInventory().addItem(Slimeboots.create());
             player.getInventory().addItem(Enderwand.create());
             player.getInventory().addItem(Shrinkdevice.create());
+
+            player.getInventory().addItem(DruidArmor.DRUID_HELMET);
+            player.getInventory().addItem(DruidArmor.DRUID_CHESTPLATE);
+            player.getInventory().addItem(DruidArmor.DRUID_LEGGINS);
+            player.getInventory().addItem(DruidArmor.DRUID_BOOTS);
+            player.getInventory().addItem(Coin.create());
             return true;
         }
 

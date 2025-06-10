@@ -65,7 +65,7 @@ public class CustomHealthManager {
         }
 
         if (entity instanceof Player player) {
-            return 1000 + StatAPI.getTotalStat(player, "stat_health");
+            return StatAPI.getExtraStat(player.getUniqueId(), "stat_health");
         } else {
             return entity.getAttribute(Attribute.MAX_HEALTH).getBaseValue() * 2;
         }
@@ -74,6 +74,8 @@ public class CustomHealthManager {
     public static double getHealth(LivingEntity entity) {
         if (isCustomMob(entity)) {
             return healthMap.getOrDefault(entity.getUniqueId(), 0.0);
+        } else if (entity instanceof Player player) {
+            return healthMap.getOrDefault(player.getUniqueId(), getMaxHealth(player));
         }
         return getMaxHealth(entity);
     }
@@ -82,7 +84,26 @@ public class CustomHealthManager {
         if (isCustomMob(entity)) {
             healthMap.put(entity.getUniqueId(), Math.max(0, value));
             updateNameTag(entity);
+        } else if (entity instanceof Player player) {
+            UUID id = player.getUniqueId();
+            double max = getMaxHealth(player);
+            healthMap.put(id, Math.min(Math.max(0, value), max));
         }
+    }
+
+    public static void addHealth(Player player, double value) {
+        setHealth(player, getHealth(player) + value);
+    }
+
+    public static double calculateDamagePlayer(Player player, double damage) {
+        double defense = StatAPI.getTotalStat(player, "stat_defense");
+        double hp = getHealth(player);
+
+        double damageReduc = defense/(defense+100);
+        double newDamage = damage-(damage*damageReduc);
+
+        setHealth(player, hp-newDamage);
+        return newDamage;
     }
 
     public static void resetHealth(LivingEntity entity) {

@@ -6,6 +6,11 @@ import org.bukkit.NamespacedKey;
 public class StatKeys {
     private static final PlanCEvent plugin = PlanCEvent.getInstance();
 
+    public static final NamespacedKey LEVEL = new NamespacedKey(plugin, "stat_level");
+    public static final NamespacedKey XP = new NamespacedKey(plugin, "stat_xp");
+
+    public static final NamespacedKey SPEED = new NamespacedKey(plugin, "stat_speed");
+
     public static final NamespacedKey HEALTH = new NamespacedKey(plugin, "stat_health");
     public static final NamespacedKey STRENGTH = new NamespacedKey(plugin, "stat_strength");
     public static final NamespacedKey CRIT_CHANCE = new NamespacedKey(plugin, "stat_crit_chance");

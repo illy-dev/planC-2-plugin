@@ -25,4 +25,5 @@ public class StatUtils {
 
         return total;
     }
+
 }

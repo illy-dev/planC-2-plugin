@@ -2,6 +2,7 @@ package de.illy.planCEvent.listeners;
 
 import de.illy.planCEvent.PlanCEvent;
 import de.illy.planCEvent.events.TowerOfDungeonEvent;
+import de.illy.planCEvent.items.CoinSystem.Coin;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
@@ -12,6 +13,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MobDeathListener implements Listener {
 
@@ -26,6 +28,12 @@ public class MobDeathListener implements Listener {
     @EventHandler
     public void onMobDeath(EntityDeathEvent e) {
         LivingEntity entity = e.getEntity();
+
+        boolean succes = ThreadLocalRandom.current().nextInt(100) < 5;
+
+        if (succes) {
+            entity.getWorld().dropItemNaturally(entity.getLocation(), Coin.create());
+        }
 
         UUID owner = null;
             for (Map.Entry<UUID, List<LivingEntity>> entry : towerOfDungeonEvent.getPlayerMobs().entrySet()) {

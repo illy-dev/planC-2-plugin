@@ -14,17 +14,21 @@ public class StatAPI {
 
     private static final Map<UUID, Map<String, Double>> extraStats = new HashMap<>();
 
-    private static final Map<String, Double> defaultStats = Map.of(
-            "stat_strength", 0.0,
-            "stat_health", 100.0,
-            "stat_crit_chance", 30.0,  // default 30%
-            "stat_crit_damage", 50.0,  // default 50%
-            "stat_magic_damage", 0.0,
-            "stat_defense", 0.0,
-            "stat_additive_damage_multiplier", 0.0,
-            "stat_multiplicative_damage_multiplier", 1.0,
-            "stat_bonus_damage", 0.0
+    private static final Map<String, Double> defaultStats = Map.ofEntries(
+            Map.entry("stat_strength", 0.0),
+            Map.entry("stat_health", 100.0),
+            Map.entry("stat_crit_chance", 30.0),
+            Map.entry("stat_crit_damage", 50.0),
+            Map.entry("stat_magic_damage", 0.0),
+            Map.entry("stat_defense", 0.0),
+            Map.entry("stat_additive_damage_multiplier", 0.0),
+            Map.entry("stat_multiplicative_damage_multiplier", 1.0),
+            Map.entry("stat_bonus_damage", 0.0),
+            Map.entry("stat_level", 1.0),
+            Map.entry("stat_xp", 0.0),
+            Map.entry("stat_speed", 1.0)
     );
+
 
     public static void setExtraStat(UUID uuid, String stat, double value) {
         extraStats.computeIfAbsent(uuid, k -> new HashMap<>()).put(stat, value);
@@ -40,8 +44,9 @@ public class StatAPI {
         double base = StatUtils.getPlayerItemStat(player, key);
         double extra = getExtraStat(player.getUniqueId(), stat);
         double defaultValue = defaultStats.getOrDefault(stat, 0.0);
+        double points = LevelManager.getAssignedPointsValues(player, stat);
 
-        PlayerStatCalculationEvent event = new PlayerStatCalculationEvent(player, stat, defaultValue + base + extra);
+        PlayerStatCalculationEvent event = new PlayerStatCalculationEvent(player, stat, defaultValue + base + extra + points);
         Bukkit.getPluginManager().callEvent(event);
         return event.getModifiedValue();
     }

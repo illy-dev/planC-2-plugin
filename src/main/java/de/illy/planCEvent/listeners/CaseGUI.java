@@ -30,10 +30,12 @@ public class CaseGUI implements Listener {
 
 
     static {
-        WEIGHTED_LOOT.put(Relics.RELIC_MOON, 15);
-        WEIGHTED_LOOT.put(Relics.RELIC_FIRE, 12);
-        WEIGHTED_LOOT.put(Relics.RELIC_VOID, 10);
-        WEIGHTED_LOOT.put(Relics.RELIC_LIGHT, 8);
+        WEIGHTED_LOOT.put(Relics.RELIC_PHANTOM, 11);
+        WEIGHTED_LOOT.put(Relics.RELIC_FIRE, 14);
+        WEIGHTED_LOOT.put(Relics.RELIC_VOID, 3);
+        WEIGHTED_LOOT.put(Relics.RELIC_COIN, 6);
+        WEIGHTED_LOOT.put(Relics.RELIC_RAGE, 11);
+        WEIGHTED_LOOT.put(Relics.RELIC_MAGNET, 12);
     }
 
     private static final int INVENTORY_SIZE = 9;

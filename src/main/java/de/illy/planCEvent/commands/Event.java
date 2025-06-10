@@ -36,11 +36,11 @@ public class Event implements CommandExecutor {
         this.hideAndSeekEvent = hideAndSeekEvent;
     }
 
-
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String @NotNull [] args) {
         if (sender instanceof Player) {
 
+            if (!sender.hasPermission("planc.dev")) return false;
             if (sender.hasPermission("event")) {
                 if (args.length > 0) {
                     switch (args[0]) {

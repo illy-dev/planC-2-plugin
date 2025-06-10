@@ -2,7 +2,6 @@ package de.illy.planCEvent.items.weapons.hyperion;
 
 import de.illy.planCEvent.StatSystem.AbilityDamageHelper;
 import de.illy.planCEvent.StatSystem.ManaManager;
-import de.illy.planCEvent.commands.ToggleDamage;
 import de.illy.planCEvent.items.ItemAbility;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -49,9 +48,7 @@ public class HyperionAbility implements ItemAbility {
             List<Entity> nearby = player.getNearbyEntities(radius, radius, radius);
             for (Entity entity : nearby) {
                 if (entity instanceof LivingEntity && entity != player && !(entity instanceof ArmorStand)) {
-                    if (!ToggleDamage.isEnabled()) {((LivingEntity) entity).damage(damage, player);} else {
-                        AbilityDamageHelper.dealAbilityDamage(player, (LivingEntity) entity, 250, 1);
-                    }
+                    AbilityDamageHelper.dealAbilityDamage(player, (LivingEntity) entity, 250, 1);
                     hitCount++;
                 }
             }

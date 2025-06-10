@@ -3,21 +3,28 @@ version: '1.0-SNAPSHOT'
 main: de.illy.planCEvent.PlanCEvent
 api-version: '1.21'
 
-
 commands:
   event:
     description: event mechanic
+    permission: planc.dev
   dungeon:
     description: start a dungeon
-  hub:
-    description: teleport to the hub
+    permission: planc.dev
   giveitems:
     description: give items
-  toggledamage:
-    description: toggle damage calc
+    permission: planc.dev
   spawnmob:
     description: spawn a custom mob
+    permission: planc.dev
   menu:
     description: open main menu
   spawnparticles:
     description: spawns
+    permission: planc.dev
+  givexp:
+    description: gives xp
+    permission: planc.dev
+
+permissions:
+  planc.dev:
+    default: op

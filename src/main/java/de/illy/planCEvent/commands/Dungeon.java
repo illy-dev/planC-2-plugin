@@ -16,6 +16,8 @@ public class Dungeon implements CommandExecutor {
             return true;
         }
 
+        if (!sender.hasPermission("planc.dev")) return false;
+
         World world = Bukkit.getWorld("dungeon");
 
         try {

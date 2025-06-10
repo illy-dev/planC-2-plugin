@@ -12,7 +12,7 @@ public class RelicContainer {
 
         return new CustomItemBuilder(relicHead)
                 .setDisplayName("§5Relic Container")
-                .addCustomEnchantmentLore("§7Open to receive one random rune!")
+                .addCustomEnchantmentLore("§7Open to receive one random Relic!")
                 .setRarity("§5§lEPIC")
                 .setAbility(AbilityTrigger.RIGHT_CLICK)
                 .setAbilityClass(RelicContainerAbility.class)
